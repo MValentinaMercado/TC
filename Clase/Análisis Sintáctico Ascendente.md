@@ -13,6 +13,55 @@ Trabaja con una **pila** y tres acciones fundamentales:
 2. **Reducción (reduce)**: reemplazar elementos de la pila por un no terminal según una producción.
 3. **Aceptación**: cuando toda la entrada se procesa y la pila contiene únicamente el símbolo inicial.
 
+## Cómo implementa esto ANTLR4
+
+ANTLR4 permite escribir la gramática con recursión izquierda y el motor interno realiza este mismo proceso de reducciones.
+
+```
+// Reglas:
+
+//  E  ->  E + T
+//          | E - T  
+//          | T
+//          | ε
+
+expr : expr SUM term            # Addition
+    | expr RES term             # Subtraction  
+    | term                            # JustTerm
+    |  
+     ;
+     
+//  T  ->  T * F
+//         | T / F  
+//         | F
+  
+term : term MUL factor       # Multiplication  
+     | term DIV factor       # Division  
+     | factor                       # JustFactor  
+     ;  
+
+
+//  F -> (E)
+//       | Num
+//       | Dec
+//       | ID
+
+
+factor : PA expr PC                 # Parentheses
+       | INTEGER                     # Number
+       | DECIMAL                   # DecimalNumber
+       | ID                               # Identifier
+       ;
+       
+       
+```
+
+
+### Características importantes
+
+1. **Recursión por la izquierda**: ANTLR4 la maneja automáticamente, por eso se pueden escribir reglas como `E -> E + T` directamente.
+2. **Etiquetas (#)**: cada alternativa tiene un nombre que facilita implementar visitors y recorrer el árbol.
+3. **Precedencia de operadores**: no se programa explícitamente; queda definida por la estructura de las reglas.
 
 ## Ejemplo paso a paso
 
@@ -32,42 +81,67 @@ F -> (E) | id
 
 El proceso es:
 
-1. Desplazar `5` → Reducir a F → Reducir a T → Reducir a E
-2. Desplazar `+` → Desplazar `2` → Reducir a F → Reducir a T
-3. Desplazar `*` → Desplazar `3` → Reducir a F
-4. Reducir `2 * 3` a T (por T → T * F)
-5. Reducir `5 + T` a E (por E → E + T)
+1. Desplazar `5` -> Reducir a F -> Reducir a T -> Reducir a E
+2. Desplazar `+` -> Desplazar `2` -> Reducir a F -> Reducir a T
+3. Desplazar `*` -> Desplazar `3` -> Reducir a F
+4. Reducir `2 * 3` a T (por T -> T * F)
+5. Reducir `5 + T` a E (por E -> E + T)
 6. Aceptar
 
 Este proceso genera un árbol sintáctico que respeta automáticamente la precedencia de operadores.
 
 
-## Cómo implementa esto ANTLR4
+### Resolución
 
-ANTLR4 permite escribir la gramática con recursión izquierda y el motor interno realiza este mismo proceso de reducciones.
+| Pila    | Entrada   | Acción                 |
+| ------- | --------- | ---------------------- |
+| $       | + 2 * 3 $ | Desplazar 5            |
+| $ 5     | + 2 * 3 $ | Reducir 5 -> F         |
+| $ F     | + 2 * 3 $ | Reducir F -> T         |
+| $ T     | + 2 * 3 $ | Reducir T -> E         |
+| $ E     | + 2 * 3 $ | Desplazar +            |
+| $ E +   | 2 * 3 $   | Desplazar 2            |
+| $ E + 2 | * 3 $     | Reducir 2 -> F         |
+| $ E + F | * 3 $     | Reducir F -> T         |
+| $ E + T | * 3 $     | Reducir E + T -> E     |
+| $ E     | *  3 $    | Reducir E -> T         |
+| $ T     | * 3 $     | Desplazar *            |
+| $ T *   | 3 $       | Desplazar 3            |
+| $ T * 3 | $         | Reducir 3 -> F         |
+| $ T * F | $         | Reducir T * F -> T     |
+| $ T     | $         | Reducir T -> E         |
+| $ E     | $         | Reducir E -> Vacio (ε) |
+| $       | $         |                        |
+
+Árbol: abajo para arriba
+Desplazar: hoja
+Reducir: nodo
+
+### Pasamos las reglas a ANTLR4
 
 ```
-expr : expr SUM term     # Addition
-     | term              # JustTerm
-     ;
+// E → E + T  
+//      | T  
 
-term : term MUL factor   # Multiplication
-     | factor            # JustFactor
-     ;
+expr : expr SUM term    
+     | term  
+     ;  
+  
+// T → T * F  
+//     | F  
 
-factor : PA expr PC      # Parentheses
-       | INTEGER         # Number
-       | DECIMAL         # DecimalNumber
-       | ID              # Identifier
-       ;
+term : term MUL factor  
+     | factor   
+     ;  
+  
+// F → (E)
+     | id  
+     
+factor : PA expr PC  
+      | ID    
+       ;   
 ```
 
-
-### Características importantes
-
-1. **Recursión por la izquierda**: ANTLR4 la maneja automáticamente, por eso se pueden escribir reglas como `E -> E + T` directamente.
-2. **Etiquetas (#)**: cada alternativa tiene un nombre que facilita implementar visitors y recorrer el árbol.
-3. **Precedencia de operadores**: no se programa explícitamente; queda definida por la estructura de las reglas.
 
 
 ## Ejemplo 2
@@ -94,20 +168,48 @@ El parser desplazará y reducirá hasta descubrir que primero debe formar `id * 
 | Pila         | Entrada   | Acción          |
 | ------------ | --------- | --------------- |
 | $            | id+id*id$ | Desplazar id    |
-| $ id         | +id*id$   | Reducir id → F  |
-| $ F          | +id*id$   | Reducir F → T   |
-| $ T          | +id*id$   | Reducir T → E   |
+| $ id         | +id*id$   | Reducir id -> F |
+| $ F          | +id*id$   | Reducir F -> T   |
+| $ T          | +id*id$   | Reducir T -> E   |
 | $ E          | +id*id$   | Desplazar +     |
 | $ E +        | id*id$    | Desplazar id    |
-| $ E + id     | *id$      | Reducir id → F  |
-| $ E + F      | *id$      | Reducir F → T   |
+| $ E + id     | *id$      | Reducir id -> F  |
+| $ E + F      | *id$      | Reducir F -> T   |
 | $ E + T      | *id$      | Desplazar *     |
 | $ E + T *    | id$       | Desplazar id    |
-| $ E + T * id | $         | Reducir id → F  |
-| $ E + T * F  | $         | Reducir T*F → T |
-| $ E + T      | $         | Reducir E+T → E |
-| $ E          | $         | Reducir E → ε   |
+| $ E + T * id | $         | Reducir id -> F  |
+| $ E + T * F  | $         | Reducir T*F -> T |
+| $ E + T      | $         | Reducir E+T -> E |
+| $ E          | $         | Reducir E -> ε   |
 | $            | $         | Aceptar         |
+
+### Pasamos las reglas a ANTLR4
+
+```
+// E → E + T  
+//      | T  
+
+expr : expr SUM term 
+     | term  
+     ;  
+  
+// T → T * F  
+//     | F  
+
+term : term MUL factor  
+     | factor  
+     ;  
+  
+// F → (E)
+     | id  
+     
+factor : PA expr PC  
+      | ID    
+       ;   
+       
+```
+
+
 
 ## Ejercicio 1
 
@@ -117,7 +219,6 @@ El parser desplazará y reducirá hasta descubrir que primero debe formar `id * 
 E -> E + T  | T  | E - T
 T -> T * F | F  
 F -> (E) | id
-
 ```
 
 ### Entrada
@@ -163,3 +264,42 @@ F -> (E) | id
 | $ E - T   | $             | Reducir E - T -> E  |
 | $ E       | $             | Reducir E -> ε      |
 | $         | $             | Aceptar             |
+
+### Pasamos las reglas a ANTLR4
+
+```
+// E  -> E + T  
+//      | E - T
+//      | T  
+
+expr : expr SUM term 
+     | expr RES term
+     | term
+     ;  
+  
+// T  -> T * F  
+//     | F  
+
+term : term MUL factor 
+     | factor 
+     ;  
+  
+// F  -> (E)
+     | id
+     
+factor : PA expr PC  
+      | ID  
+       ;   
+       
+```
+
+
+## Resumen 
+
+En el ascendente:
+
+> Tengo lo que veo en la entrada y descubro qué regla lo generó.
+
+Si una expresión puede resolverse en ascendente, siempre puede adaptarse para descendente transformando la gramática.
+
+
