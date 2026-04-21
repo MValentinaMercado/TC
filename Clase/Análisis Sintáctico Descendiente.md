@@ -33,35 +33,34 @@ ANTLR4 permite escribir la gramática con recursión izquierda y el motor intern
 //          | T
 //          | ε
 
-expr : expr SUM term            # Addition
-    | expr RES term             # Subtraction  
-    | term                            # JustTerm
-    |  
-     ;
-     
+expr 
+    : expr SUM term   # Addition
+    | expr RES term   # Subtraction  
+    | term            # JustTerm
+    |                 # EmptyExpr
+    ;
      
 //  T  ->  T * F
 //         | T / F  
 //         | F
   
-term : term MUL factor       # Multiplication  
-     | term DIV factor       # Division  
-     | factor                       # JustFactor  
-     ;  
-
+term 
+    : term MUL factor # Multiplication  
+    | term DIV factor # Division  
+    | factor          # JustFactor  
+    ;  
 
 //  F -> (E)
 //       | Num
 //       | Dec
 //       | ID
 
-
-factor : PA expr PC                 # Parentheses
-       | INTEGER                     # Number
-       | DECIMAL                   # DecimalNumber
-       | ID                               # Identifier
-       ;
-       
+factor 
+    : PA expr PC      # Parentheses
+    | INTEGER         # Number
+    | DECIMAL         # DecimalNumber
+    | ID              # Identifier
+    ;
 ```
 
 
@@ -230,23 +229,26 @@ Nodo: T  Nodo: E'
 // E → E + T  
 //      | T  
 
-expr : expr SUM term    
-     | term  
-     ;  
+expr 
+    : expr SUM term   # Addition
+    | term            # JustTerm
+    ;  
   
 // T → T * F  
 //     | F  
 
-term : term MUL factor  
-     | factor   
-     ;  
+term 
+    : term MUL factor # Multiplication
+    | factor          # JustFactor
+    ;  
   
 // F → (E)
-     | id  
+//     | id  
      
-factor : PA expr PC  
-      | ID    
-       ;   
+factor 
+    : PA expr PC      # Parentheses
+    | ID              # Identifier
+    ;
 ```
 
 
@@ -297,39 +299,35 @@ id + id * id
 // E -> T G
 
 expr
-    : term exprTail
+    : term exprTail   # ExprWithTail
     ;
 
-// G -> + T G
-//         | ε
+// G -> + T G | ε
 
 exprTail
-    : SUM term exprTail 
-    |      
+    : SUM term exprTail # AddTail
+    |                   # EmptyExprTail
     ;
 
 // T -> F H 
 
 term
-    : factor termTail
+    : factor termTail   # TermWithTail
     ;
     
-// H -> * F H 
-//         |ε
+// H -> * F H | ε
 
 termTail
-    : MUL factor termTail 
-    |  
+    : MUL factor termTail # MulTail
+    |                     # EmptyTermTail
     ;
     
-// F -> (E)
-//       |ID
+// F -> (E) | ID
 
 factor
-    : PA expr PC   
-    | ID    
+    : PA expr PC      # Parentheses
+    | ID              # Identifier
     ;
-       
 ```
 
 
@@ -496,24 +494,27 @@ F  -> (E) | id
 //      | E - T
 //      | T  
 
-expr : expr SUM term 
-     | expr RES term
-     | term
-     ;  
+expr 
+    : expr SUM term   # Addition
+    | expr RES term   # Subtraction
+    | term            # JustTerm
+    ;  
   
 // T  -> T * F  
 //     | F  
 
-term : term MUL factor 
-     | factor 
-     ;  
+term 
+    : term MUL factor # Multiplication
+    | factor          # JustFactor
+    ;  
   
 // F  -> (E)
-     | id
+//     | id
      
-factor : PA expr PC  
-      | ID  
-       ;   
+factor 
+    : PA expr PC      # Parentheses
+    | ID              # Identifier
+    ;
        
 ```
 
