@@ -21,6 +21,53 @@ Trabaja con una **pila** y dos acciones:
 
 3. **Match**: cuando el terminal en la pila coincide con el token de entrada.
 
+## Recursiones
+
+### Izquierda
+
+Una regla es **recursiva por la izquierda** cuando el **primer símbolo del lado derecho** es el mismo no terminal.
+
+Por ejemplo: 
+
+E → E + T
+
+E se llama a sí misma **antes** de consumir nada de la entrada.
+
+Y el árbol quedaría:
+
+```
+      E
+     / \
+    E   c
+   / \
+  E   b
+  |
+  a
+
+```
+
+
+
+### Derecha
+
+Una regla es **recursiva por la derecha** cuando el no terminal aparece **al final** del lado derecho.
+
+Por ejemplo:
+
+E → T + E
+
+Solo influye en la construcción del árbol:
+
+```
+   E
+   / \
+  a   E
+     / \
+    b   c
+
+```
+
+
 ## Cómo implementa esto ANTLR4
 
 ANTLR4 permite escribir la gramática con recursión izquierda y el motor interno realiza este mismo proceso de reducciones.
