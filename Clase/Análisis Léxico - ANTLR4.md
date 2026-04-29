@@ -1,3 +1,6 @@
+
+[Proyecto](https://github.com/FranciscoAmeri/Ejercicios_Sintacticos/tree/lexico/Ejercicio/demo)
+
 ## Nivel 1: Fundamentos Básicos
 
 ### Ejercicio 1.1: Identificar Números Enteros
@@ -48,7 +51,7 @@ echo "123 0 999 42 12.5 -10 abc" > Ej1-1.txt
 
 mvn clean package
 
-java -jar target/demo-1.0-jar-with-dependencies.jar Ej1-1.txt
+java -jar target/demo-1.0-jar-with-dependencies.jar ejemplo.txt
 ```
 
 ---
