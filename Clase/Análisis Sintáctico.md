@@ -90,6 +90,7 @@ term : term '*' factor
 factor : '(' expr ')'
        | ID
        ;
+       
 ```
 
 No hace falta transformar la gramática para que funcione. ANTLR se encarga internamente.

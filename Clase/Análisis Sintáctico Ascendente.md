@@ -93,25 +93,24 @@ Este proceso genera un árbol sintáctico que respeta automáticamente la preced
 
 ### Resolución
 
-| Pila    | Entrada   | Acción                 |
-| ------- | --------- | ---------------------- |
-| $       | + 2 * 3 $ | Desplazar 5            |
-| $ 5     | + 2 * 3 $ | Reducir 5 -> F         |
-| $ F     | + 2 * 3 $ | Reducir F -> T         |
-| $ T     | + 2 * 3 $ | Reducir T -> E         |
-| $ E     | + 2 * 3 $ | Desplazar +            |
-| $ E +   | 2 * 3 $   | Desplazar 2            |
-| $ E + 2 | * 3 $     | Reducir 2 -> F         |
-| $ E + F | * 3 $     | Reducir F -> T         |
-| $ E + T | * 3 $     | Reducir E + T -> E     |
-| $ E     | *  3 $    | Reducir E -> T         |
-| $ T     | * 3 $     | Desplazar *            |
-| $ T *   | 3 $       | Desplazar 3            |
-| $ T * 3 | $         | Reducir 3 -> F         |
-| $ T * F | $         | Reducir T * F -> T     |
-| $ T     | $         | Reducir T -> E         |
-| $ E     | $         | Reducir E -> Vacio (ε) |
-| $       | $         |                        |
+| Pila        | Entrada     | Acción             |
+| ----------- | ----------- | ------------------ |
+| $           | 5 + 2 * 3 $ | Desplazar 5        |
+| $ 5         | + 2 * 3 $   | Reducir 5 -> F     |
+| $ F         | + 2 * 3 $   | Reducir F -> T     |
+| $ T         | + 2 * 3 $   | Reducir T -> E     |
+| $ E         | + 2 * 3 $   | Desplazar +        |
+| $ E +       | 2 * 3 $     | Desplazar 2        |
+| $ E + 2     | * 3 $       | Reducir 2 -> F     |
+| $ E + F     | * 3 $       | Reducir F -> T     |
+| $ E + T     | * 3 $       | Desplazar *        |
+| $ E + T *   | 3 $         | Desplazar id       |
+| $ E + T * 3 | $           | Reducir 3 -> F     |
+| $ E + T * F | $           | Reducir T * F -> T |
+| $ E + T     | $           | Reducir E+T -> E   |
+| $ E         | $           | Reducir E -> ε     |
+| $           | $           | Aceptar            |
+
 
 Árbol: abajo para arriba
 Desplazar: hoja
@@ -165,23 +164,23 @@ id + id * id
 El parser desplazará y reducirá hasta descubrir que primero debe formar `id * id` como `T`, y luego sumarlo con el primer `id` para formar `E`.
 
 ### Resolución 
-| Pila         | Entrada   | Acción          |
-| ------------ | --------- | --------------- |
-| $            | id+id*id$ | Desplazar id    |
-| $ id         | +id*id$   | Reducir id -> F |
+| Pila         | Entrada   | Acción           |
+| ------------ | --------- | ---------------- |
+| $            | id+id*id$ | Desplazar id     |
+| $ id         | +id*id$   | Reducir id -> F  |
 | $ F          | +id*id$   | Reducir F -> T   |
 | $ T          | +id*id$   | Reducir T -> E   |
-| $ E          | +id*id$   | Desplazar +     |
-| $ E +        | id*id$    | Desplazar id    |
+| $ E          | +id*id$   | Desplazar +      |
+| $ E +        | id*id$    | Desplazar id     |
 | $ E + id     | *id$      | Reducir id -> F  |
 | $ E + F      | *id$      | Reducir F -> T   |
-| $ E + T      | *id$      | Desplazar *     |
-| $ E + T *    | id$       | Desplazar id    |
+| $ E + T      | *id$      | Desplazar *      |
+| $ E + T *    | id$       | Desplazar id     |
 | $ E + T * id | $         | Reducir id -> F  |
 | $ E + T * F  | $         | Reducir T*F -> T |
 | $ E + T      | $         | Reducir E+T -> E |
 | $ E          | $         | Reducir E -> ε   |
-| $            | $         | Aceptar         |
+| $            | $         | Aceptar          |
 
 ### Pasamos las reglas a ANTLR4
 
